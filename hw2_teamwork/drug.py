@@ -1,3 +1,4 @@
+# python3
 import re
 
 train_path = './train_drugs.data'
@@ -18,6 +19,8 @@ for row in range(800):
     train_data[row][1].remove('\n')
     size.append(len(train_data[row][1]))
 
+# train_set[row][1] to get active or inactive
+# train_set[row][col] to get feature
 train_set = [[0]*6062 for i in range(800)]
 for row in range(800):
     for col in range(6062):
@@ -27,5 +30,3 @@ for row in range(800):
             train_set[row][col] = 0
         else:
             train_set[row][col] = train_data[row][1][col-1]
-
-#print(train_set[0][1])
