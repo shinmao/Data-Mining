@@ -190,5 +190,5 @@ def naive_bayes_classifier(train_resampled,class_resampled,test_red):
         print(predict[i])
     return predict
 
-if name__ == "__main__":
+if __name__ == "__main__":
     main()
