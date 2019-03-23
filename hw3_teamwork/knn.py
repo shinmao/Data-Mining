@@ -8,6 +8,7 @@ sparse_matrix = [[0]*126373 for i in range(3147)]
 def read_sparse():
     with open(input_path) as f:
         data = f.readlines()
+    f.close()
     for i in range(3147):
         temp = []
         temp = data[i].rstrip().split(" ")
