@@ -104,9 +104,8 @@ def k_means(test_svd):
         # print(centers_new)
         # check if there's any center was changed
         error = np.linalg.norm(centers_new - centers_old)
+        j+=1
         
-       
-    j+=1
     with open('output.txt', 'w') as f:
         for i in clusters:
             f.write("%s\n" % str(int(clusters[i])+1))
