@@ -87,6 +87,7 @@ def k_means(test_svd):
     # print(centers_new[0])
     # check if there's any center was changed
     error = np.linalg.norm(centers_new - centers_old)
+    j = 0
     while j<10:
         for row in range(NUM_OF_RECORDS):
             for i in range(K):
