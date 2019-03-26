@@ -69,7 +69,7 @@ def svd(test_tfidf):
     # print(test_svd.shape)
     
 
-def initialize(test_svd, K):
+def k_means_plus_plus(test_svd, K):
     c1 = randint(0,NUM_OF_RECORDS)
     C = [test_svd[c1]]
     for k in range(1, K):
@@ -98,7 +98,7 @@ def k_means(test_svd):
         num_features = test_svd.shape[1]
         centers_old = np.zeros((K,num_features))
         # random K centers
-        rand_points = initialize(test_svd,K)
+        rand_points = k_means_plus_plus(test_svd,K)
         # print(rand_points)
         centers_new = np.array(rand_points)
         
@@ -107,7 +107,7 @@ def k_means(test_svd):
         distance = np.zeros((NUM_OF_RECORDS,K))
         # print(centers_new[0])
         # check if there's any center was changed
-        error = np.linalg.norm(centers_new - centers_old)
+        # error = np.linalg.norm(centers_new - centers_old)
         j = 0
         while j<300:
             for row in range(NUM_OF_RECORDS):
@@ -117,20 +117,12 @@ def k_means(test_svd):
             # assign the points to the closest cluster
             # argmax: get the index of maximum cosine similarity
             clusters[:,itr] = np.argmax(distance, axis = 1)
-            # for k in range(K):
-            #     if k in clusters[:]:
-            #         print(str(k) + " is in clusters")
-            #     else:
-            #         print(str(k) + " is not in clusters")
-            # print(clusters)
             centers_old = deepcopy(centers_new)
             # recompute the new k mean centers
             for i in range(K):
                 centers_new[i] = np.mean(test_svd[clusters[:,itr] == i],axis =0)
             # print(centers_new)
             centers_new = check_empty_cluster(test_svd,clusters[:,itr],centers_new)
-            # check if there's any center was changed
-            error = np.linalg.norm(centers_new - centers_old)
             j+=1 
         scores[itr] = sil_score(test_svd,clusters[:,itr])
         c, sse = compute_sse(test_svd,clusters[:,itr],centers_new)
@@ -141,6 +133,7 @@ def k_means(test_svd):
     
     best_clusters1 = clusters[:, np.argmax(scores)]
     best_clusters2 = clusters[:,np.argmin(sse_res)]
+    
     with open('output_sil.txt', 'w') as f:
         for i in range(best_clusters1.shape[0]):
             f.write("%s\n" % str(int(best_clusters1[i])+1))
