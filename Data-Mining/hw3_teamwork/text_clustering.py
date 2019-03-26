@@ -130,10 +130,13 @@ def k_means(test_svd):
         print("score " + str(itr) + ": " + str(scores[itr]) )
         print("sse " + str(itr) + ": " + str(sse_res[itr]) )
         itr+=1
-    
+    # get the highest silhouette score 
     best_clusters1 = clusters[:, np.argmax(scores)]
+    print("itr: "+ str(np.argmax(scores)) + " has the maximum silhouette score = " + str(np.amax(scores)))
+    # get the minimum sse
     best_clusters2 = clusters[:,np.argmin(sse_res)]
-    
+    print("itr: "+ str(np.argmin(sse_res)) + " has the minimum sse  = " + str(np.amin(sse_res)))
+
     with open('output_sil.txt', 'w') as f:
         for i in range(best_clusters1.shape[0]):
             f.write("%s\n" % str(int(best_clusters1[i])+1))
