@@ -10,6 +10,8 @@ from random import randint
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import normalize
 from sklearn.feature_selection import mutual_info_classif
+import random
+from sklearn.metrics import silhouette_score
 
 
 features_path = './features.data'
@@ -60,7 +62,7 @@ def svd(test_tfidf):
     # it is known as latent semantic analysis (LSA).
     # For LSA, a value of 100 is recommended.
     # 100 = 0.25064564; 500 = 0.48713001; 1000 = 0.62768052; 2000 = 0.77843753; 2500 = 0.82; 5000: 0.85
-    svd = TruncatedSVD(n_components=100, random_state=42)
+    svd = TruncatedSVD(n_components=3000, random_state=42)
     test_svd = svd.fit_transform(test_tfidf)
     # print(svd.explained_variance_.cumsum())
     return test_svd
@@ -83,55 +85,104 @@ def initialize(test_svd, K):
     return C
 
 def k_means(test_svd):
-    print("k means")
-    # test_svd = normalize(test_svd)
+    # store clusters for each record 
+    itr = 0
+    clusters = np.zeros((NUM_OF_RECORDS,10))
+    scores = np.zeros(10)
+    sse_res = np.zeros(10)
+    while itr<10:
+        print("k means "+ str(itr))
+        # test_svd = normalize(test_svd)
 
-    # test_svd.shape[1] = # features after reduction
-    num_features = test_svd.shape[1]
-    centers_old = np.zeros((K,num_features))
-    # random K centers
-    rand_points = initialize(test_svd,K)
-    # print(rand_points)
-    centers_new = np.array(rand_points)
+        # test_svd.shape[1] = # features after reduction
+        num_features = test_svd.shape[1]
+        centers_old = np.zeros((K,num_features))
+        # random K centers
+        rand_points = initialize(test_svd,K)
+        # print(rand_points)
+        centers_new = np.array(rand_points)
+        
     
-    # store clusters for each record
-    clusters = np.zeros(NUM_OF_RECORDS)
-    # store distance between each record and centers
-    distance = np.zeros((NUM_OF_RECORDS,K))
-    # print(centers_new[0])
-    # check if there's any center was changed
-    error = np.linalg.norm(centers_new - centers_old)
-    j = 0
-    while j<300:
-        for row in range(NUM_OF_RECORDS):
-            for i in range(K):
-                # compute distance between each record and center 
-                distance[row][i] = get_cosine_sim(test_svd[row],centers_new[i])
-        # assign the points to the closest cluster
-        # argmin: get the index of minimum distance
-        clusters = np.argmax(distance, axis = 1)
-        # print(clusters)
-        centers_old = deepcopy(centers_new)
-        # recompute the new k mean centers
-        for i in range(K):
-            centers_new[i] = np.mean(test_svd[clusters == i],axis =0)
-        print(centers_new)
+        # store distance between each record and centers
+        distance = np.zeros((NUM_OF_RECORDS,K))
+        # print(centers_new[0])
         # check if there's any center was changed
         error = np.linalg.norm(centers_new - centers_old)
-        j+=1
-
-    with open('output.txt', 'w') as f:
-        for i in clusters:
-            f.write("%s\n" % str(int(clusters[i])+1))
-
+        j = 0
+        while j<300:
+            for row in range(NUM_OF_RECORDS):
+                for i in range(K):
+                    # compute distance between each record and center 
+                    distance[row][i] = get_cosine_sim(test_svd[row],centers_new[i])
+            # assign the points to the closest cluster
+            # argmax: get the index of maximum cosine similarity
+            clusters[:,itr] = np.argmax(distance, axis = 1)
+            # for k in range(K):
+            #     if k in clusters[:]:
+            #         print(str(k) + " is in clusters")
+            #     else:
+            #         print(str(k) + " is not in clusters")
+            # print(clusters)
+            centers_old = deepcopy(centers_new)
+            # recompute the new k mean centers
+            for i in range(K):
+                centers_new[i] = np.mean(test_svd[clusters[:,itr] == i],axis =0)
+            # print(centers_new)
+            centers_new = check_empty_cluster(test_svd,clusters[:,itr],centers_new)
+            # check if there's any center was changed
+            error = np.linalg.norm(centers_new - centers_old)
+            j+=1 
+        scores[itr] = sil_score(test_svd,clusters[:,itr])
+        c, sse = compute_sse(test_svd,clusters[:,itr],centers_new)
+        sse_res[itr] = sse
+        print("score " + str(itr) + ": " + str(scores[itr]) )
+        print("sse " + str(itr) + ": " + str(sse_res[itr]) )
+        itr+=1
     
-def get_corrleation(v1,v2):
+    best_clusters1 = clusters[:, np.argmax(scores)]
+    best_clusters2 = clusters[:,np.argmin(sse_res)]
+    with open('output_sil.txt', 'w') as f:
+        for i in range(best_clusters1.shape[0]):
+            f.write("%s\n" % str(int(best_clusters1[i])+1))
+
+    with open('output_sse.txt', 'w') as f:
+        for i in range(best_clusters2.shape[0]):
+            f.write("%s\n" % str(int(best_clusters2[i])+1))
+    
+   
+
+def compute_sse(test_svd, clusters, centroids):
+        distance = np.zeros(test_svd.shape[0])
+        for k in range(K):
+            distance[clusters == k] = np.linalg.norm(test_svd[clusters == k] - centroids[k], axis=1)  
+        distance = np.square(distance)
+        sse = np.sum(np.square(distance))
+        return np.argmax(distance), sse
+
+def check_empty_cluster(test_svd,clusters,centers_new):
+    # print(clusters)
+    for k in range(K):
+        if k in clusters[:]:
+           pass
+        else:
+            c, sse = compute_sse(test_svd,clusters,centers_new)
+            centers_new [k] = random.choice(test_svd[clusters == c])
+            print("empty cluster: "+ str(k))
+            print(centers_new [k])
+    return centers_new
+
+def get_correlation(v1,v2):
     corr = np.corrcoef(v1, v2)
     return corr[0][1]
 
 def get_cosine_sim(v1, v2):
     
     return np.dot(v1,v2)/(np.sqrt(np.sum(v1**2)) * np.sqrt(np.sum(v2**2)))
+
+def sil_score(data, predicted):
+    # score between -1 and 1, the bigger the better
+    score = silhouette_score(data, predicted, metric='cosine')
+    return score
 
 
 main()
