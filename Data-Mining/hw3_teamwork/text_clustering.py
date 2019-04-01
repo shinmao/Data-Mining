@@ -26,12 +26,6 @@ def main():
     read_data()
     test_tfidf = tf_idf()
     test_svd = svd(test_tfidf)
-    # kmeans = KMeans(n_clusters=7, random_state=42)
-    # clusters = kmeans.fit_predict(test_svd)
-    # with open('output1.txt', 'w') as f:
-    #     for i in clusters:
-    #         f.write("%s\n" % str(int(clusters[i])+1))
-    
     k_means(test_svd)
 
 def read_data():
@@ -64,7 +58,7 @@ def svd(test_tfidf):
     # 100 = 0.25064564; 500 = 0.48713001; 1000 = 0.62768052; 2000 = 0.77843753; 2500 = 0.82; 5000: 0.85
     svd = TruncatedSVD(n_components=3000, random_state=42)
     test_svd = svd.fit_transform(test_tfidf)
-    # print(svd.explained_variance_.cumsum())
+    print(svd.explained_variance_.cumsum())
     return test_svd
     # print(test_svd.shape)
     
@@ -113,7 +107,7 @@ def k_means(test_svd):
             for row in range(NUM_OF_RECORDS):
                 for i in range(K):
                     # compute distance between each record and center 
-                    distance[row][i] = get_cosine_sim(test_svd[row],centers_new[i])
+                    distance[row][i] = get_correlation(test_svd[row],centers_new[i])
             # assign the points to the closest cluster
             # argmax: get the index of maximum cosine similarity
             clusters[:,itr] = np.argmax(distance, axis = 1)
@@ -130,7 +124,7 @@ def k_means(test_svd):
         print("score " + str(itr) + ": " + str(scores[itr]) )
         print("sse " + str(itr) + ": " + str(sse_res[itr]) )
         itr+=1
-    # get the highest silhouette score 
+    # get the highest  silhouettescore 
     best_clusters1 = clusters[:, np.argmax(scores)]
     print("itr: "+ str(np.argmax(scores)) + " has the maximum silhouette score = " + str(np.amax(scores)))
     # get the minimum sse
@@ -152,7 +146,7 @@ def compute_sse(test_svd, clusters, centroids):
         for k in range(K):
             distance[clusters == k] = np.linalg.norm(test_svd[clusters == k] - centroids[k], axis=1)  
         distance = np.square(distance)
-        sse = np.sum(np.square(distance))
+        sse = np.sum(distance)
         return np.argmax(distance), sse
 
 def check_empty_cluster(test_svd,clusters,centers_new):
@@ -177,7 +171,8 @@ def get_cosine_sim(v1, v2):
 
 def sil_score(data, predicted):
     # score between -1 and 1, the bigger the better
-    score = silhouette_score(data, predicted, metric='cosine')
+    # score = silhouette_score(data, predicted, metric='cosine')
+    score = silhouette_score(data, predicted, metric='correlation')
     return score
 
 
