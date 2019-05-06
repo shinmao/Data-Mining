@@ -3,10 +3,12 @@ from mlxtend.frequent_patterns import apriori
 from mlxtend.frequent_patterns import association_rules
 
 def read_transactions():
-    transactions_productCat = pd.read_csv("./transactions_productCat.csv") 
-    return transactions_productCat
-transactions_productCat = read_transactions()
-frequent_itemsets = apriori(transactions_productCat, min_support=0.6, use_colnames=True)
-print(frequent_itemsets)
-rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.7)
-print(rules)
+    transactions_attributes = pd.read_csv("./transactions_attributes.csv") 
+    return transactions_attributes
+transactions_attributes = read_transactions()
+tid = transactions_attributes = transactions_attributes.drop(columns = ['User_ID'])
+frequent_predicate_set = apriori(tid, min_support=0.03, use_colnames=True)
+frequent_predicate_set.to_csv("frequent_predicate_set.csv")
+
+rules = association_rules(frequent_predicate_set, metric="lift", min_threshold=1.0)
+rules.to_csv("rules.csv")
