@@ -234,72 +234,7 @@ def find_same_freq_itemsets(rules1,transactions1, rules2,transactions2):
     print("rules2 row: "+ str(rules2.shape[0]))
     return same_df
 
-def get_lift1(same_df,transactions1,transactions2):
-    lift = []
-    data = pd.concat([transactions1,transactions2], axis=1, sort=False)
-    data_matrix = data.as_matrix()
-    for i in range(same_df.shape[0]):
-        prob_a = 0.0
-        prob_c = 0.0
-        prob_a_c = 0.0
-        isa = True
-        isc = True
-        isa_c = True
-        k =0
-        m =0
-        n =0
-        antecedents = list(same_df.iloc[i]['antecedents'])
-        
-        consequents = list(same_df.iloc[i]['consequents'])
-        a_and_c = antecedents + consequents
-        # df = data[antecedents].all()
-        # print(df)
-        # print(df.shape[0])
-        for j in range(data.shape[0]):
-            while (k< len(antecedents) and isa == True):
-                col=data.columns.get_loc(antecedents[k]) 
-                print("a: ",antecedents[k])
-                print("col: ",col)
-                # print (data.iloc[j][colname])
-                if data_matrix[j][col] == 1:
-                    print("true")
-                    isa = True
-                    k+=1
-                    # if all the arrtibutes == 1
-                    if k == len(antecedents) -1:
-                        proba_a +=1
-                        
-                else:
-                    isa = False
-            
-            isa = True
-            while (m< len(consequents) and isc == True):
-                col=data.columns.get_loc(consequents[m])
-                print("c: ",consequents[m])
-                print("col: ",col)
-                if data_matrix[j][col] == 1:
-                    isc = True
-                    m+=1
-                    # if all the arrtibutes == 1
-                    if m == len(consequents) -1:
-                        proba_c +=1
-                else:
-                    isc = False
-            isc = True
-        
 
-            while (n< len(a_and_c) and isa_c == True):
-                col=data.columns.get_loc(consequents[m])
-                if data[antecedents[n]].iloc[j] == 1:
-                    isOne = True
-                    n+=1
-                    # if all the arrtibutes == 1
-                    if n == len(a_and_c) -1:
-                        proba_a_c +=1
-                else:
-                    isOne = False
-        lift.append(prob_a_c/5892) /((prob_a/5892) *  (prob_c/5892))
-    return lift
 
 def get_lift(same_df,transactions1,transactions2):
     lift = []
@@ -416,16 +351,16 @@ def category_occ(transactions_cat, data):
 # rules.to_csv("rule_freq_predicate.csv")
 product_cat()
 transactions_product,transactions_cat, data = read_transactions_products()
-# rules_p = products_products(transactions_product)
-# rules_g , transactions_gender= products_gender(transactions_product,data)
+rules_p = products_products(transactions_product)
+rules_g , transactions_gender= products_gender(transactions_product,data)
 
-# rules_age_c, transactions_age_c = category_age(transactions_cat,data)
+rules_age_c, transactions_age_c = category_age(transactions_cat,data)
 rules_occ_c, transactions_occ_c = category_occ(transactions_cat,data)
-# rules_age, transactions_age = products_age(transactions_product,data)
-# rules_occ = products_occupation(transactions_product,data)
-# rules_city = products_city(transactions_product,data)
-# rules_city_s = products_city_stay(transactions_product,data)
-# rules_marital = products_marital(transactions_product,data)
+rules_age, transactions_age = products_age(transactions_product,data)
+rules_occ = products_occupation(transactions_product,data)
+rules_city = products_city(transactions_product,data)
+rules_city_s = products_city_stay(transactions_product,data)
+rules_marital = products_marital(transactions_product,data)
 
 
 # same_a_g = find_same_freq_itemsets(rules_age,transactions_age,rules_g,transactions_gender)
