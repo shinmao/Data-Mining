@@ -25,7 +25,7 @@ test_path = './test.data'
 TRAIN_SIZE = 800
 TEST_SIZE = 350
 # number of classifiers for cross validation to choose the best model
-# turned out that random forest might be the best model, set clf_num =1  
+# turned out that random forest might be the best model, set clf_num =1
 clf_num = 1
 pca_lambda = 0.8
 # number of estimaters for bagging and random forest classifiers
@@ -48,7 +48,7 @@ def main():
     train_set = sparse_to_dense(TRAIN_SIZE,train_data)
     test_set = sparse_to_dense(TEST_SIZE,test_data)
     test_class=[]
-    # split_data() only one time 
+    # split_data() only one time
     # traindf, testdf,train_class,test_class = split_data()
 
     # split_data() 10 times randomly, and do cross validation for each classifier
@@ -56,10 +56,10 @@ def main():
     traindf, testdf, train_class = create_dataframe()
     test_red, train_resampled, class_resampled = training(traindf, testdf, train_class)
     random_forest_classifier(train_resampled, class_resampled, test_red, test_class)
-    
+
 
 def read_data():
-    # handle the train data into array 
+    # handle the train data into array
     with open(train_path) as f:
         data = f.readlines()
     # train_data[row][0] to get drug active or inactive
@@ -81,11 +81,11 @@ def read_data():
     for i in range(800):
         cs.append(int(train_buffer[i][0]))
 
-    # handle the test data into array 
+    # handle the test data into array
     with open(test_path) as f:
         data = f.readlines()
     for row in range(350):
-        test_data.append(data[row].split()) 
+        test_data.append(data[row].split())
 
 # get maximum dimension
 def get_max_dimension():
@@ -138,7 +138,7 @@ def cross_validation():
     print(cross_validation_res)
     '''
 
-# split training data into training and testing for validation  
+# split training data into training and testing for validation
 def split_data():
     train_split, test_split, train_class, test_class = train_test_split(train_set, cs, test_size=1/4.0)
 
@@ -169,11 +169,11 @@ def create_dataframe():
 
 
 def training(traindf, testdf,train_class):
-    # standardize dataset before applying PCA 
+    # standardize dataset before applying PCA
     scaler = StandardScaler()
-    train_std = scaler.fit_transform(traindf) 
+    train_std = scaler.fit_transform(traindf)
     test_std = scaler.transform(testdf)
- 
+
     train_red, test_red = pca_reduction(train_std,test_std)
 
     # Combine over- and under-sampling using SMOTE and Tomek links.
@@ -216,7 +216,7 @@ def SVM_classifier(train_resampled,class_resampled,test_red,test_class):
 def random_forest_classifier(train_resampled,class_resampled,test_red,test_class):
     f1_score =0.0
     '''
-    predict = RandomForestClassifier(n_estimators=190, max_depth=197, min_samples_split=31, 
+    predict = RandomForestClassifier(n_estimators=190, max_depth=197, min_samples_split=31,
         min_samples_leaf=3, max_features='sqrt', random_state=0).fit(train_resampled, class_resampled).predict(test_red)
     '''
     predict = RandomForestClassifier(n_estimators=num_trees, random_state=0, min_samples_leaf=50).fit(train_resampled, class_resampled).predict(test_red)
@@ -241,13 +241,13 @@ def random_forest_classifier(train_resampled,class_resampled,test_red,test_class
     #f1_score = evaluation(test_class,predict)
     #print(f1_score)
     return f1_score
-    
+
 def decision_tree_classifier(train_resampled,class_resampled,test_red,test_class):
-   
+
     classifier = tree.DecisionTreeClassifier()
     f1_score =0.0
     # predict
-    predict = BaggingClassifier(base_estimator=classifier, n_estimators=num_trees, random_state=0).fit(train_resampled, class_resampled).predict(test_red) 
+    predict = BaggingClassifier(base_estimator=classifier, n_estimators=num_trees, random_state=0).fit(train_resampled, class_resampled).predict(test_red)
     # print(predict)
     # for i in range(len(predict)):
     #     print(predict[i])
@@ -255,7 +255,7 @@ def decision_tree_classifier(train_resampled,class_resampled,test_red,test_class
     print("pca lambda = " + str(pca_lambda))
     f1_score = evaluation(test_class,predict)
     return f1_score
-    
+
 
 def naive_bayes_classifier(train_resampled,class_resampled,test_red,test_class):
     gnb = GaussianNB()
@@ -273,7 +273,7 @@ def naive_bayes_classifier(train_resampled,class_resampled,test_red,test_class):
 def adaboost_classifier(train_resampled,class_resampled,test_red,test_class):
     f1_score =0.0
     # predict
-    predict = AdaBoostClassifier(random_state=0).fit(train_resampled, class_resampled).predict(test_red) 
+    predict = AdaBoostClassifier(random_state=0).fit(train_resampled, class_resampled).predict(test_red)
     # print(predict)
     # for i in range(len(predict)):
     #     print(predict[i])
@@ -285,6 +285,6 @@ def adaboost_classifier(train_resampled,class_resampled,test_red,test_class):
 
 def evaluation(test_class,predict):
     # print(classification_report(test_class,predict))
-    return f1_score(test_class, predict,labels = [0,1],average=None) 
-  
+    return f1_score(test_class, predict,labels = [0,1],average=None)
+
 main()
